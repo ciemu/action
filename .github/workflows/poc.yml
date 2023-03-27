@@ -1,0 +1,30 @@
+# Copyright (c) Rodrigo Speller. All rights reserved.
+# Licensed under the MIT License. See LICENSE in the project root for license information.
+
+name: Proof of Concept
+on: [ workflow_dispatch ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Test ${{ matrix.image }}
+
+    strategy:
+      matrix:
+        include:
+          - image: amd64/alpine
+          - image: arm64v8/alpine
+          - image: arm32v7/alpine
+          - image: s390x/alpine
+
+    steps:
+      - name: Test ${{ matrix.image }}
+        uses: rodrigo-speller/ciemu@main
+        with:
+          image: ${{ matrix.image }}
+          build: |
+            uname -a
+            ls -la /
+          run: |
+            uname -a
+            ls -la "${{ github.workspace }}"
