@@ -1,84 +1,45 @@
 # Copyright (c) Rodrigo Speller. All rights reserved.
 # Licensed under the MIT License. See LICENSE in the project root for license information.
 
-name: CIEMU
-description: CIEMU can be used to run Linux containers with a specific CPU architecture on GitHub Actions workflows.
+name: CIEmu
+description: |
+  CIEmu enables seamless and efficient multi-arch emulation for Linux containers, allowing to easily run Linux
+  containers with a specific CPU architecture on GitHub Actions workflows.
 
 inputs:
   image:
-    required: false
+    description: The image base to be used for emulation.
     default: alpine
-  tag:
     required: false
-    default: ciemu-tag
+  token:
+    description: The GitHub token to authenticate with the GitHub Container Registry.
+    required: false
+    default: ""
+  cache-name:
+    description: The name of the cache to be used to store the built image. If not specified, the image name will be used.
+    required: false
+    default: ""
   shell:
-    required: false
+    description: The shell to execute the 'build' and 'run' commands.
     default: /bin/sh
+    required: false
   build:
-    required: false
+    description: The commands to be executed to build the image for this container.
     default: ""
+    required: false
+  bind:
+    description: A space-separated list of volume bindings for this container.
+    default: ""
+    required: false
+  env:
+    description: A space-separated list of environment variables names to be exported for this container.
+    default: ""
+    required: false
   run:
-    required: false
+    description: The commands to be executed to run the container.
     default: ""
+    required: false
 
 runs:
-  using: composite
-  steps:
-
-    - name: Run CIEMU
-      shell: sh
-      env:
-        INPUT_IMAGE: ${{ inputs.image }}
-        INPUT_TAG: ${{ inputs.tag }}
-        INPUT_SHELL: ${{ inputs.shell }}
-        INPUT_BUILD: ${{ inputs.build }}
-        INPUT_RUN: ${{ inputs.run }}
-
-      run: |
-        "${{ github.action_path }}/ciemu"
-
-    # The qemu-user-static package will register binary formats which the provided emulators can handle, so that it
-    # will be possible to run foreign binaries directly.
-    # See more: https://wiki.debian.org/QemuUserEmulation
-    - name: Install QEMU
-      shell: sh
-      run: |
-        DEBIAN_FRONTEND=noninteractive
-
-        sudo apt-get update -y
-        sudo apt-get install -y qemu qemu-user-static
-
-    # The multiarch/qemu-user-static image registers below kind of /proc/sys/fs/binfmt_misc/qemu-<arch> files for all
-    # supported processors except the current one in it when running the container.
-    # See more: https://github.com/multiarch/qemu-user-static
-    - name: Register QEMU
-      shell: sh
-      run: |
-        docker run --rm --privileged multiarch/qemu-user-static --reset --credential yes --persistent yes
-
-    - name: Build Docker image
-      shell: sh
-      env:
-        CIEMU_BUILD_SCRIPT: ${{ inputs.build }}
-      run: |
-        set -e
-        docker run \
-            --detach \
-            --interactive \
-            --name "${{ inputs.tag }}" \
-            "${{ inputs.image }}" \
-            "${{ inputs.shell }}"
-        docker commit "${{ inputs.tag }}" "${{ inputs.tag }}"
-
-    - name: Run Docker image
-      shell: sh
-      env:
-        CIEMU_RUN_SCRIPT: ${{ inputs.run }}
-      run: |
-        docker run \
-            --rm \
-            --volume "${{ github.workspace }}:${{ github.workspace }}" \
-            --volume "/var/run/docker.sock:/var/run/docker.sock" \
-            --workdir "${{ github.workspace }}" \
-            "${{ inputs.tag }}" \
-            "${{ inputs.shell }}" -c "$CIEMU_RUN_SCRIPT"
+  using: 'node16'
+  main: 'dist/index.js'

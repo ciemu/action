@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# Copyright (c) Rodrigo Speller. All rights reserved.
+# Licensed under the MIT License. See LICENSE in the project root for license information.
+
+CIEMU_IMAGE=${CIEMU_IMAGE:-"unknown"}
+
+echo "Copyright (c) Rodrigo Speller. All rights reserved."
+echo "Licensed under the MIT License."
+echo "See LICENSE on <https://github.com/ciemu/action/blob/main/LICENSE>."
+echo
+echo "A simple script that prints some information about the running system."
+echo
+echo
+echo "$(echo -n '           $$$    $$$')"
+echo "$(echo -n '           $$$    $$$')"
+echo "$(echo -n '    .%$$$$$$$$$$$$$$$$$$$$%.')"
+echo "$(echo -n '    $$$$$$$$$$$$$$$$$$$$$$$$')"
+echo "$(echo -n '    $$$$                $$$$')"
+echo "$(echo -n ' $$$$$$$   $$$$$$$$$$   $$$$$$$')"
+echo "$(echo -n '    $$$$   $$$    $$$   $$$$')"
+echo "$(echo -n '    $$$$   $$$    $$$   $$$$')        CIEmu"
+echo "$(echo -n ' $$$$$$$   $$$$$$$$$$   $$$$$$$')"
+echo "$(echo -n '    $$$$                $$$$')        Image base:"
+echo "$(echo -n '    $$$$$$$$$$$$$$$$$$$$$$$$')          $CIEMU_IMAGE"
+echo "$(echo -n '    `%$$$$$$$$$$$$$$$$$$$$%´')"
+echo "$(echo -n '           $$$    $$$')               Machine arch:"
+echo "$(echo -n '           $$$    $$$')                 $(uname -m)"
+echo
+echo
+echo "System info:"
+echo "============"
+echo "Machine: $(uname -m)"
+echo "Kernel: $(uname -s -r -v)"
+echo
+echo "Environment variables:"
+echo "======================"
+env
+echo
+echo "Listing '/mnt' directory:"
+echo "========================="
+ls -l /mnt
+echo
+echo "Listing working directory"
+echo "========================="
+pwd -P
+ls -l
+echo
