@@ -38,7 +38,7 @@ const fs = __importStar(__nccwpck_require__(3292));
 const crypto = __importStar(__nccwpck_require__(6113));
 const tar_1 = __nccwpck_require__(4900);
 async function main(docker, options) {
-    let { image, build, run } = options;
+    const { image, build, run } = options;
     let imageToRun = image;
     // Register multi-arch emulation
     await core.group('Enabling execution of multi-arch binaries (powered by QEMU)', async () => await registerEmulation(docker));
@@ -81,43 +81,43 @@ async function registerEmulation(docker) {
 }
 /**
  * Build a new image from from the given image and build script.
- * @returns The image ID.
+ * @returns The name of the built image.
  */
-async function buildImage(docker, { cacheDirectory, cachePrefix, image, shell, build }) {
-    if (!build)
-        throw new Error('No command to build.');
+async function buildImage(docker, options) {
+    const { cacheDirectory, cachePrefix, image, shell, build } = options;
+    const buildCommand = build || '';
     // Create build context
     core.info('Creating build context...');
-    let encoder = new TextEncoder();
-    let dockerfile = [
+    const encoder = new TextEncoder();
+    const dockerfile = [
         `FROM ${image}`,
         'COPY ciemu-build.sh /ciemu-build.sh',
         `RUN ${shell} /ciemu-build.sh`,
         'RUN rm /ciemu-build.sh'
     ].join('\n');
-    let context = (0, tar_1.createTar)([
+    const context = (0, tar_1.createTar)([
         { name: 'Dockerfile', data: encoder.encode(dockerfile) },
-        { name: 'ciemu-build.sh', data: encoder.encode(build) }
+        { name: 'ciemu-build.sh', data: encoder.encode(buildCommand) }
     ]);
     const contextHash = crypto
         .createHash('sha1')
         .update("ciemu-cache-v0") // use to invalidate cache (e.g. when the cache format changes)
         .update(cachePrefix)
         .update(dockerfile)
-        .update(build)
+        .update(buildCommand)
         .digest('hex');
     // Import image from cache
     core.info('Loading image cache...');
-    const uniqueCacheKey = `${cachePrefix}-${contextHash}`;
-    core.info(`Unique cache key: ${uniqueCacheKey}`);
-    const cacheResult = await cache.restoreCache([cacheDirectory], uniqueCacheKey);
+    const builtImage = `${cachePrefix}-${contextHash}`;
+    core.info(`Unique cache key: ${builtImage}`);
+    const cacheResult = await cache.restoreCache([cacheDirectory], builtImage);
     if (cacheResult) {
-        core.info('Importing image form cache...');
+        core.info('Importing image from cache...');
         const file = await fs.open(`${cacheDirectory}/image.tar`);
         const importResult = await docker.importImages({ stream: file.createReadStream() });
         await docker.followProgress(importResult);
         await file.close();
-        return uniqueCacheKey;
+        return builtImage;
     }
     else {
         core.info('Cache miss.');
@@ -131,24 +131,24 @@ async function buildImage(docker, { cacheDirectory, cachePrefix, image, shell, b
     // Export image to cache
     if (!cacheResult) {
         core.info('Caching image..');
-        await buildResult.tag({ repo: uniqueCacheKey });
-        const exportResult = await docker.exportImage({ name: uniqueCacheKey });
+        await buildResult.tag({ repo: builtImage });
+        const exportResult = await docker.exportImage({ name: builtImage });
         await fs.writeFile(`${cacheDirectory}/image.tar`, exportResult);
-        await cache.saveCache([cacheDirectory], uniqueCacheKey);
+        await cache.saveCache([cacheDirectory], builtImage);
     }
-    return uniqueCacheKey;
+    return builtImage;
 }
 /**
  * Run a command inside a container.
  */
-async function runCommand(docker, image, { ciemuDirectory, shell, run, binds, envs, workspace }) {
-    if (!run)
-        throw new Error('No command to run.');
+async function runCommand(docker, image, options) {
+    const { ciemuDirectory, shell, run, binds, envs, workspace } = options;
+    const runCommand = run || '';
     core.info('Running container...');
     const result = await docker.run({
         create: {
             Image: image,
-            Cmd: [shell, '-c', run],
+            Cmd: [shell, '-c', runCommand],
             WorkingDir: workspace,
             Env: envs,
             HostConfig: {

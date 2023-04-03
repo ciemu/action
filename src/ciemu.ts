@@ -23,7 +23,8 @@ export type CIEmuOptions = {
 
 export default async function main(docker: Docker, options: CIEmuOptions) {
 
-    let { image, build, run } = options;
+    const { image, build, run } = options;
+
     let imageToRun = image;
 
     // Register multi-arch emulation
@@ -83,27 +84,28 @@ async function registerEmulation(docker: Docker) {
 
 /**
  * Build a new image from from the given image and build script.
- * @returns The image ID.
+ * @returns The name of the built image.
  */
-async function buildImage(docker: Docker, { cacheDirectory, cachePrefix, image, shell, build }: CIEmuOptions) {
+async function buildImage(docker: Docker, options: CIEmuOptions) {
 
-    if (!build)
-        throw new Error('No command to build.');
+    const { cacheDirectory, cachePrefix, image, shell, build } = options;
+
+    const buildCommand = build || '';
 
     // Create build context
 
     core.info('Creating build context...');
-    let encoder = new TextEncoder();
-    let dockerfile = [
+    const encoder = new TextEncoder();
+    const dockerfile = [
         `FROM ${image}`,
         'COPY ciemu-build.sh /ciemu-build.sh',
         `RUN ${shell} /ciemu-build.sh`,
         'RUN rm /ciemu-build.sh'
     ].join('\n')
 
-    let context = createTar([
+    const context = createTar([
         { name: 'Dockerfile', data: encoder.encode(dockerfile) },
-        { name: 'ciemu-build.sh', data: encoder.encode(build!) }
+        { name: 'ciemu-build.sh', data: encoder.encode(buildCommand) }
     ]);
 
     const contextHash = crypto
@@ -111,25 +113,25 @@ async function buildImage(docker: Docker, { cacheDirectory, cachePrefix, image, 
         .update("ciemu-cache-v0") // use to invalidate cache (e.g. when the cache format changes)
         .update(cachePrefix)
         .update(dockerfile)
-        .update(build!)
+        .update(buildCommand)
         .digest('hex');
 
     // Import image from cache
 
     core.info('Loading image cache...');
 
-    const uniqueCacheKey = `${cachePrefix}-${contextHash}`;
-    core.info(`Unique cache key: ${uniqueCacheKey}`);
+    const builtImage = `${cachePrefix}-${contextHash}`;
+    core.info(`Unique cache key: ${builtImage}`);
 
-    const cacheResult = await cache.restoreCache([ cacheDirectory ], uniqueCacheKey);
+    const cacheResult = await cache.restoreCache([ cacheDirectory ], builtImage);
     if (cacheResult) {
-        core.info('Importing image form cache...');
+        core.info('Importing image from cache...');
         const file = await fs.open(`${cacheDirectory}/image.tar`);
         const importResult = await docker.importImages({ stream: file.createReadStream() });
         await docker.followProgress(importResult);
         await file.close();
 
-        return uniqueCacheKey;
+        return builtImage;
     } else {
         core.info('Cache miss.');
     }
@@ -150,29 +152,30 @@ async function buildImage(docker: Docker, { cacheDirectory, cachePrefix, image, 
     if (!cacheResult) {
         core.info('Caching image..');
 
-        await buildResult.tag({ repo: uniqueCacheKey });
+        await buildResult.tag({ repo: builtImage });
 
-        const exportResult = await docker.exportImage({ name: uniqueCacheKey });
+        const exportResult = await docker.exportImage({ name: builtImage });
         await fs.writeFile(`${cacheDirectory}/image.tar`, exportResult);
-        await cache.saveCache([ cacheDirectory ], uniqueCacheKey);
+        await cache.saveCache([ cacheDirectory ], builtImage);
     }
 
-    return uniqueCacheKey;
+    return builtImage;
 }
 
 /**
  * Run a command inside a container.
  */
-async function runCommand(docker: Docker, image: string, { ciemuDirectory, shell, run, binds, envs, workspace }: CIEmuOptions) {
+async function runCommand(docker: Docker, image: string, options: CIEmuOptions) {
 
-    if (!run)
-        throw new Error('No command to run.');
+    const { ciemuDirectory, shell, run, binds, envs, workspace } = options;
+
+    const runCommand = run || '';
 
     core.info('Running container...');
     const result = await docker.run({
         create: {
             Image: image,
-            Cmd: [shell, '-c', run],
+            Cmd: [shell, '-c', runCommand],
             WorkingDir: workspace,
             Env: envs,
             HostConfig: {
