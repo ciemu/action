@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rodrigo-speller/ciemu.git"
+    "url": "git+https://github.com/ciemu/action.git"
   },
   "keywords": [
     "actions",

@@ -33,7 +33,7 @@ jobs:
           
     steps:
       - name: Executing CIEmu
-        uses: rodrigo-speller-sandbox/ciemu@main
+        uses: ciemu/action@v0
         env: 
           CIEMU_IMAGE: ${{ matrix.image }}
         with:
@@ -59,7 +59,7 @@ jobs:
             esac
 
             # Install chipsay
-            wget -O /usr/local/bin/chipsay https://raw.githubusercontent.com/rodrigo-speller-sandbox/ciemu/main/chipsay
+            wget -O /usr/local/bin/chipsay https://raw.githubusercontent.com/ciemu/action/v0/chipsay
             chmod 755 /usr/local/bin/chipsay
           # Run container
           bind: |

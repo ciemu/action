@@ -1,6 +1,6 @@
 # CIEmu Action
 
-[![Getting started with CIEmu Action](https://github.com/rodrigo-speller-sandbox/ciemu/actions/workflows/getting-started.yml/badge.svg)](https://github.com/rodrigo-speller-sandbox/ciemu/actions/workflows/getting-started.yml)
+[![Getting started with CIEmu Action](https://github.com/ciemu/action/actions/workflows/getting-started.yml/badge.svg)](https://github.com/ciemu/action/actions/workflows/getting-started.yml)
 
 The CIEmu Action (CIEmu: *see-I-am-you*) enables seamless and efficient multi-arch emulation for Linux containers on GitHub Actions workflows. With CIEmu, you can easily run Linux containers with a specific CPU architecture, regardless of the underlying host architecture.
 
@@ -66,7 +66,7 @@ jobs:
           
     steps:
       - name: Executing CIEmu
-        uses: rodrigo-speller-sandbox/ciemu@main
+        uses: ciemu/action@v0
         env: 
           CIEMU_IMAGE: ${{ matrix.image }}
         with:
@@ -92,7 +92,7 @@ jobs:
             esac
 
             # Install chipsay
-            wget -O /usr/local/bin/chipsay https://raw.githubusercontent.com/rodrigo-speller-sandbox/ciemu/main/chipsay
+            wget -O /usr/local/bin/chipsay https://raw.githubusercontent.com/ciemu/action/v0/chipsay
             chmod 755 /usr/local/bin/chipsay
           # Run container
           bind: |
