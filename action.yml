@@ -15,8 +15,8 @@ inputs:
     description: The GitHub token to authenticate with the GitHub Container Registry.
     required: false
     default: ""
-  cache-name:
-    description: The name of the cache to be used to store the built image. If not specified, the image name will be used.
+  cache-prefix:
+    description: The prefix of the cache to be used to store the built image. If not specified, the image name will be used.
     required: false
     default: ""
   shell:

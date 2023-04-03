@@ -17,7 +17,7 @@ The CIEmu Action has several inputs that you can configure to customize the beha
 | **General** |
 | `image` | The image base to be used for emulation. <br> Default: `alpine` |
 | `token` | The GitHub token to authenticate with the GitHub Container Registry. <br> Default: *not set* |
-| `cache-name` | The name of the cache to be used to store the built image. If not specified, the image name will be used. <br> Default: *Computed from the `image` name.* E.g.: `ciemu-cache-alpine-3-17` *or* `ciemu-cache-ubuntu-jammy`. |
+| `cache-prefix` | The prefix of the cache to be used to store the built image. If not specified, the image name will be used. <br> Default: *Computed from the `image` name.* E.g.: `ciemu-cache-alpine-3-17` *or* `ciemu-cache-ubuntu-jammy`. |
 | `shell` | The shell to execute the `build` and `run` commands. <br> Default: `/bin/sh` |	
 | **Build image** |
 | `build` | The commands to be executed to build the image for this container. <br> Default: *not set* |
@@ -74,7 +74,7 @@ jobs:
           image: ${{ matrix.image }}
           # Caching
           token: ${{ secrets.GITHUB_TOKEN }}
-          cache-name: cache-getting-started-${{ matrix.image }}
+          cache-prefix: cache-getting-started-${{ matrix.image }}
           # Build image
           build: |
             set -e
@@ -108,7 +108,7 @@ This workflow will runs on every push and pull request to the repository. It wil
 
 The workflow will build the image for each container using the `build` input, and then run the container using the `run` input. The `build` commands will install the `chipsay` utility, which will be used to print a message with the container's architecture and distribution. Then, the `run` commands will execute the `chipsay` utility.
 
-The CIEmu Action includes a cache feature that can help speed up your builds by reusing previously built Docker images. The cache works by storing the Docker image in a the GitHub Container Registry. To use the cache, you'll need to set the `token` input to the `secrets.GITHUB_TOKEN` environment variable, and (optionally) set the `cache-name` input to a name of your choice.
+The CIEmu Action includes a cache feature that can help speed up your builds by reusing previously built Docker images. The cache works by storing the Docker image in a the GitHub Container Registry. To use the cache, you'll need to set the `token` input to the `secrets.GITHUB_TOKEN` environment variable, and (optionally) set the `cache-prefix` input to a key of your choice.
 
 # License
 

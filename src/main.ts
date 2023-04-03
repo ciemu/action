@@ -1,11 +1,11 @@
 // Copyright (c) Rodrigo Speller. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+import * as fs from 'fs/promises';
 import * as core from '@actions/core';
-import * as github from '@actions/github';
 import * as shlex from 'shlex';
 import ciemu from './ciemu';
-import { Docker, RegExpPatternAuthenticationHandler } from './lib/docker';
+import { Docker } from './lib/docker';
 
 (async function main () {
 
@@ -22,17 +22,18 @@ import { Docker, RegExpPatternAuthenticationHandler } from './lib/docker';
     let env: string | undefined = core.getInput('env') || _;
     let run: string | undefined = core.getInput('run') || _;
     let token: string | undefined = core.getInput('token') || _;
-    let cacheName: string | undefined = core.getInput('cache-name') || _;
+    let cachePrefix: string | undefined = core.getInput('cache-prefix') || _;
 
     // Configurations
 
     let workspace = process.env['GITHUB_WORKSPACE'] || process.cwd();
-    let repository = process.env['GITHUB_REPOSITORY'] || 'unknown';
     let binds = bind ? shlex.split(bind) : _;
     let envs = env ? shlex.split(env).map(x => `${x}=${process.env[x] ?? ''}`) : _;
 
-    cacheName = (cacheName ?? `ciemu-cache-{image}`).replace(/[^-_a-z0-9]+/gi, '-');
-    let buildCacheImage = `ghcr.io/${repository}/${cacheName}`.toLowerCase();
+    cachePrefix = (cachePrefix ?? `ciemu-cache-{image}`).replace(/[^-_a-z0-9]+/gi, '-');
+
+    let cacheDirectory = `${ciemuDirectory}/.ciemu/runtime/cache/${cachePrefix}`;
+    fs.mkdir(cacheDirectory, { recursive: true });
 
     if (!build && !run) {
         core.warning("Both 'build' and 'run' are empty, nothing to do.");
@@ -40,26 +41,18 @@ import { Docker, RegExpPatternAuthenticationHandler } from './lib/docker';
 
     // Create docker client
 
-    let docker = new Docker({
-        auth: token
-            ? new RegExpPatternAuthenticationHandler(
-                /^ghcr.io\//,
-                {
-                    username: github.context.actor,
-                    password: token,
-                })
-            : _,
-    });
+    let docker = new Docker();
 
     // Run CIEmu
 
     await ciemu(docker, {
         ciemuDirectory,
+        cacheDirectory,
         workspace,
         image,
+        cachePrefix,
         shell,
         build,
-        buildCacheImage,
         binds,
         envs,
         run,

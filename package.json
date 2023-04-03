@@ -16,8 +16,8 @@
     "setup"
   ],
   "dependencies": {
+    "@actions/cache": "^3.2.1",
     "@actions/core": "^1.10.0",
-    "@actions/github": "^5.1.1",
     "docker-modem": "^3.0.8",
     "shlex": "^2.1.2"
   },

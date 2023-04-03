@@ -112,6 +112,36 @@ export class Docker {
         return await this.dial(request) as IncomingMessage;
     }
 
+    async exportImage({ name }: ExportImageOptions) {
+        const request: Modem.DialOptions = {
+            path: `/images/${name}/get?`,
+            method: 'GET',
+            isStream: true,
+            statusCodes: {
+                200: true,
+                500: 'server error',
+            }
+        };
+
+        return await this.dial(request) as IncomingMessage;
+    }
+
+    async importImages({ stream }: ImportImagesOptions) {
+        const request: Modem.DialOptions = {
+            path: '/images/load?',
+            method: 'POST',
+            isStream: true,
+            file: stream,
+            statusCodes: {
+                200: true,
+                404: 'repository does not exist or no read access',
+                500: 'server error',
+            }
+        };
+
+        return await this.dial(request) as IncomingMessage;
+    }
+
     async pushImage({ name, options, authconfig }: PushImageOptions) {
         
         const request: Modem.DialOptions = {
@@ -299,6 +329,14 @@ export type CreateImageOptions = {
         fromImage: string,
         tag?: string,
     }
+}
+
+export type ExportImageOptions = {
+    name: string,
+}
+
+export type ImportImagesOptions = {
+    stream: NodeJS.ReadableStream
 }
 
 export type PushImageOptions = {

@@ -2,15 +2,19 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 import * as core from '@actions/core';
+import * as cache from '@actions/cache';
+import * as fs from 'fs/promises';
+import * as crypto from 'crypto';
 import { Docker } from "./lib/docker";
 import { createTar } from './lib/tar';
 
 export type CIEmuOptions = {
     ciemuDirectory: string;
+    cacheDirectory: string;
+    cachePrefix: string;
     workspace: string;
     image: string;
     shell: string;
-    buildCacheImage?: string,
     build?: string;
     binds?: string[];
     envs?: string[];
@@ -82,47 +86,54 @@ async function registerEmulation(docker: Docker) {
  * If a token is provided, the image will be pushed to the registry to be used as cache.
  * @returns The image ID.
  */
-async function buildImage(docker: Docker, { image, shell, build, buildCacheImage }: CIEmuOptions) {
+async function buildImage(docker: Docker, { cacheDirectory, cachePrefix, image, shell, build }: CIEmuOptions) {
 
     if (!build)
         throw new Error('No command to build.');
 
-    // Pull cached image
-
-    if (buildCacheImage) {
-        core.info('Pulling cached image from registry...');
-
-        try {
-            const pullResult = await docker.createImage({
-                options: {
-                    fromImage: buildCacheImage,
-                },
-            });
-    
-            await docker.followProgress(pullResult);
-        } catch (e) {
-            core.warning(`Failed to pull cached image: ${e?.toString()}`);
-        }
-        
-    } else {
-        core.warning('No image build cache name provided, skipping pull cache from registry.');
-    }
-
     // Create build context
 
     core.info('Creating build context...');
-    var encoder = new TextEncoder();
-    const dockerfile = [
+    let encoder = new TextEncoder();
+    let dockerfile = [
         `FROM ${image}`,
         'COPY ciemu-build.sh /ciemu-build.sh',
         `RUN ${shell} /ciemu-build.sh`,
         'RUN rm /ciemu-build.sh'
     ].join('\n')
 
-    var context = createTar([
+    let context = createTar([
         { name: 'Dockerfile', data: encoder.encode(dockerfile) },
         { name: 'ciemu-build.sh', data: encoder.encode(build!) }
     ]);
+
+    const contextHash = crypto
+        .createHash('sha1')
+        .update("ciemu-cache-v0") // use to invalidate cache (e.g. when the cache format changes)
+        .update(cachePrefix)
+        .update(dockerfile)
+        .update(build!)
+        .digest('hex');
+
+    // Import image from cache
+
+    core.info('Loading image cache...');
+
+    const uniqueCacheKey = `${cachePrefix}-${contextHash}`;
+    core.info(`Unique cache key: ${uniqueCacheKey}`);
+
+    const cacheResult = await cache.restoreCache([ cacheDirectory ], uniqueCacheKey);
+    if (cacheResult) {
+        core.info('Importing image form cache...');
+        const file = await fs.open(`${cacheDirectory}/image.tar`);
+        const importResult = await docker.importImages({ stream: file.createReadStream() });
+        await docker.followProgress(importResult);
+        await file.close();
+
+        return uniqueCacheKey;
+    } else {
+        core.info('Cache miss.');
+    }
 
     // Build image
 
@@ -130,31 +141,24 @@ async function buildImage(docker: Docker, { image, shell, build, buildCacheImage
     const buildResult = await docker.build(
         {
             context: Buffer.from(context),
-            options: {
-                cachefrom: buildCacheImage ? [ buildCacheImage ] : void 0,
-                q: true
-            },
+            options: { q: true },
         },
         true
     );
 
-    // Push image to cache
+    // Export image to cache
 
-    if (buildCacheImage) {
-        core.info('Pushing image to registry..');
+    if (!cacheResult) {
+        core.info('Caching image..');
 
-        await buildResult.tag({ repo: buildCacheImage });
+        await buildResult.tag({ repo: uniqueCacheKey });
 
-        let pushResult = await docker.pushImage({
-            name: buildCacheImage
-        })
-        
-        await docker.followProgress(pushResult);
-    } else {
-        core.info('No image build cache name provided, skipping push cache to registry.');
+        const exportResult = await docker.exportImage({ name: uniqueCacheKey });
+        await fs.writeFile(`${cacheDirectory}/image.tar`, exportResult);
+        await cache.saveCache([ cacheDirectory ], uniqueCacheKey);
     }
 
-    return buildResult.id;
+    return uniqueCacheKey;
 }
 
 /**
