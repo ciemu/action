@@ -83,7 +83,6 @@ async function registerEmulation(docker: Docker) {
 
 /**
  * Build a new image from from the given image and build script.
- * If a token is provided, the image will be pushed to the registry to be used as cache.
  * @returns The image ID.
  */
 async function buildImage(docker: Docker, { cacheDirectory, cachePrefix, image, shell, build }: CIEmuOptions) {

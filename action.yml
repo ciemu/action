@@ -11,10 +11,6 @@ inputs:
     description: The image base to be used for emulation.
     default: alpine
     required: false
-  token:
-    description: The GitHub token to authenticate with the GitHub Container Registry.
-    required: false
-    default: ""
   cache-prefix:
     description: The prefix of the cache to be used to store the built image. If not specified, the image name will be used.
     required: false

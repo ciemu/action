@@ -21,7 +21,6 @@ import { Docker } from './lib/docker';
     let bind: string | undefined = core.getInput('bind') || _;
     let env: string | undefined = core.getInput('env') || _;
     let run: string | undefined = core.getInput('run') || _;
-    let token: string | undefined = core.getInput('token') || _;
     let cachePrefix: string | undefined = core.getInput('cache-prefix') || _;
 
     // Configurations

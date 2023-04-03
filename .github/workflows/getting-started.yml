@@ -40,7 +40,6 @@ jobs:
           # Image base
           image: ${{ matrix.image }}
           # Caching
-          token: ${{ secrets.GITHUB_TOKEN }}
           cache-prefix: cache-getting-started-${{ matrix.image }}
           # Build image
           build: |

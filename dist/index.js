@@ -81,7 +81,6 @@ async function registerEmulation(docker) {
 }
 /**
  * Build a new image from from the given image and build script.
- * If a token is provided, the image will be pushed to the registry to be used as cache.
  * @returns The image ID.
  */
 async function buildImage(docker, { cacheDirectory, cachePrefix, image, shell, build }) {
@@ -591,7 +590,6 @@ const docker_1 = __nccwpck_require__(4414);
     let bind = core.getInput('bind') || _;
     let env = core.getInput('env') || _;
     let run = core.getInput('run') || _;
-    let token = core.getInput('token') || _;
     let cachePrefix = core.getInput('cache-prefix') || _;
     // Configurations
     let workspace = process.env['GITHUB_WORKSPACE'] || process.cwd();
