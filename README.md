@@ -34,9 +34,6 @@ name: Getting started with CIEmu Action
 
 on: [ push, pull_request ]
 
-permissions:
-  packages: write
-
 jobs:
   getting-started:
     name: Running on ${{ matrix.image }}
