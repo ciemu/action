@@ -142,7 +142,7 @@ async function buildImage(docker, options) {
  * Run a command inside a container.
  */
 async function runCommand(docker, image, options) {
-    const { ciemuDirectory, shell, run, binds, envs, workspace } = options;
+    const { ciemuDirectory, shell, run, binds, envs, user, workspace } = options;
     const runCommand = run || '';
     core.info('Running container...');
     const result = await docker.run({
@@ -151,6 +151,7 @@ async function runCommand(docker, image, options) {
             Cmd: [shell, '-c', runCommand],
             WorkingDir: workspace,
             Env: envs,
+            User: user,
             HostConfig: {
                 Binds: [
                     "/var/run/docker.sock:/var/run/docker.sock:ro",
@@ -581,6 +582,9 @@ const shlex = __importStar(__nccwpck_require__(5659));
 const ciemu_1 = __importDefault(__nccwpck_require__(2866));
 const docker_1 = __nccwpck_require__(4414);
 (async function main() {
+    if (process.platform !== 'linux') {
+        throw new Error('CIEmu Action only works on Linux.');
+    }
     const _ = void 0;
     let ciemuDirectory = __dirname.split('/').slice(0, -1).join('/');
     // Get inputs
@@ -590,6 +594,7 @@ const docker_1 = __nccwpck_require__(4414);
     let bind = core.getInput('bind') || _;
     let env = core.getInput('env') || _;
     let run = core.getInput('run') || _;
+    let user = core.getInput('user') || `${process.getuid()}:${process.getgid()}`;
     let cachePrefix = core.getInput('cache-prefix') || _;
     // Configurations
     let workspace = process.env['GITHUB_WORKSPACE'] || process.cwd();
@@ -614,6 +619,7 @@ const docker_1 = __nccwpck_require__(4414);
         build,
         binds,
         envs,
+        user,
         run,
     });
 })()

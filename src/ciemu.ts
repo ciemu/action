@@ -18,6 +18,7 @@ export type CIEmuOptions = {
     build?: string;
     binds?: string[];
     envs?: string[];
+    user?: string;
     run?: string;
 }
 
@@ -167,7 +168,7 @@ async function buildImage(docker: Docker, options: CIEmuOptions) {
  */
 async function runCommand(docker: Docker, image: string, options: CIEmuOptions) {
 
-    const { ciemuDirectory, shell, run, binds, envs, workspace } = options;
+    const { ciemuDirectory, shell, run, binds, envs, user, workspace } = options;
 
     const runCommand = run || '';
 
@@ -178,6 +179,7 @@ async function runCommand(docker: Docker, image: string, options: CIEmuOptions) 
             Cmd: [shell, '-c', runCommand],
             WorkingDir: workspace,
             Env: envs,
+            User: user,
             HostConfig: {
                 Binds: [
                     "/var/run/docker.sock:/var/run/docker.sock:ro",

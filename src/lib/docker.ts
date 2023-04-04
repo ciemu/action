@@ -358,6 +358,7 @@ export type CreateContainerOptions = {
     OpenStdin?: boolean,
     StdinOnce?: boolean,
     Tty?: boolean,
+    User?: string,
     Volumes?: Record<string, {}>,
     WorkingDir?: string,
 }

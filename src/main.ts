@@ -9,6 +9,10 @@ import { Docker } from './lib/docker';
 
 (async function main () {
 
+    if (process.platform !== 'linux') {
+        throw new Error('CIEmu Action only works on Linux.');
+    }
+
     const _ = void 0;
 
     let ciemuDirectory = __dirname.split('/').slice(0, -1).join('/');
@@ -21,6 +25,7 @@ import { Docker } from './lib/docker';
     let bind: string | undefined = core.getInput('bind') || _;
     let env: string | undefined = core.getInput('env') || _;
     let run: string | undefined = core.getInput('run') || _;
+    let user: string | undefined = core.getInput('user') || `${process.getuid!()}:${process.getgid!()}`;
     let cachePrefix: string | undefined = core.getInput('cache-prefix') || _;
 
     // Configurations
@@ -54,6 +59,7 @@ import { Docker } from './lib/docker';
         build,
         binds,
         envs,
+        user,
         run,
     })
 

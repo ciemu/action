@@ -31,6 +31,11 @@ inputs:
     description: A space-separated list of environment variables names to be exported for this container.
     default: ""
     required: false
+  user: 
+    description: The user to be used within the running container. By default, Docker uses the root user and group, but
+      CIEmu Action, uses the current user and group that is executing the workflow.
+    default: ""
+    required: false
   run:
     description: The commands to be executed to run the container.
     default: ""

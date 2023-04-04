@@ -23,6 +23,7 @@ The CIEmu Action has several inputs that you can configure to customize the beha
 | **Run container** |
 | `bind` | A space-separated list of volume bindings for this container. <br> Default: *Mounts `/var/run/docker.sock`, CIEmu Action directory and workspace directory.* |
 | `env` | A space-separated list of environment variables names to be exported for this container. <br> Default: *not set* |
+| `user` | The user to be used within the running container. <br> Default: *The current user and group that is executing the workflow. Note that the mapped user and group of the /etc/passwd file inside the container may not match the current user and group.* |
 | `run` | The commands to be executed to run the container. <br> Default: *not set* |
 
 ### Set up your workflow
