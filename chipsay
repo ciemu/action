@@ -9,19 +9,14 @@ echo "Copyright (c) Rodrigo Speller. All rights reserved."
 echo "Licensed under the MIT License."
 echo "See LICENSE on <https://github.com/ciemu/action/blob/main/LICENSE>."
 echo
-echo "A simple script that prints some information about the running system."
 echo
-echo
-echo "$(echo -n '        $$    $$')"
-echo "$(echo -n '   .%$$$$$$$$$$$$$$%.')      CIEmu Action"
-echo "$(echo -n '   $$              $$')"
-echo "$(echo -n ' $$$$   .$$$$$$.   $$$$')    Image base:"
-echo "$(echo -n '   $$   $$    $$   $$')        $CIEMU_IMAGE"
-echo "$(echo -n '   $$   $$    $$   $$')"
-echo "$(echo -n ' $$$$   `$$$$$$´   $$$$')    Machine arch:"
-echo "$(echo -n '   $$              $$')        $(uname -m)"
-echo "$(echo -n '   `%$$$$$$$$$$$$$$%´')"
-echo "$(echo -n '        $$    $$')"
+echo "$(echo -n '     $$ $$ $$ $$')"
+echo "$(echo -n '  .%$$$$$$$$$$$$$%.')"
+echo "$(echo -n '  $$             $$')    CIEmu Action"
+echo "$(echo -n '  D$    CIEmu    $$')    Image base: $CIEMU_IMAGE"
+echo "$(echo -n '  $$             $$')    Machine arch: $(uname -m)"
+echo "$(echo -n '  `%$$$$$$$$$$$$$%´')"
+echo "$(echo -n '     $$ $$ $$ $$')"
 echo
 echo
 echo "System info:"
