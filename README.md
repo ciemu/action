@@ -12,19 +12,22 @@ This guide will walk you through the basic steps of using the CIEmu Action, incl
 
 The CIEmu Action has several inputs that you can configure to customize the behavior of the action. Here's a brief description of each input:
 
-| Input | Description |
-| --- | --- |
-| **General** |
-| `image` | The image base to be used for emulation. <br> Default: `alpine` |
-| `cache-prefix` | The prefix of the cache to be used to store the built image. If not specified, the image name will be used. <br> Default: *Computed from the `image` name.* E.g.: `ciemu-cache-alpine-3-17` *or* `ciemu-cache-ubuntu-jammy`. |
-| `shell` | The shell to execute the `build` and `run` commands. <br> Default: `/bin/sh` |	
-| **Build image** |
-| `build` | The commands to be executed to build the image for this container. <br> Default: *not set* |
-| **Run container** |
-| `bind` | A space-separated list of volume bindings for this container. <br> Default: *Mounts `/var/run/docker.sock`, CIEmu Action directory and workspace directory.* |
-| `env` | A space-separated list of environment variables names to be exported for this container. <br> Default: *not set* |
-| `user` | The user to be used within the running container. <br> Default: *The current user and group that is executing the workflow. Note that the mapped user and group of the /etc/passwd file inside the container may not match the current user and group.* |
-| `run` | The commands to be executed to run the container. <br> Default: *not set* |
+#### General inputs
+
+- `image` - The image base to be used for emulation. Default: `alpine`.
+- `cache-prefix` - The prefix of the cache to be used to store the built image. If not specified, the image name will be used. Default: *Computed from the `image` name.* E.g.: `ciemu-cache-alpine-3-17` *or* `ciemu-cache-ubuntu-jammy`.
+- `shell` - The shell to execute the `build` and `run` commands. Default: `/bin/sh`.
+
+#### Build image inputs
+
+- `build` - The commands to be executed to build the image for this container. Default: *not set*.
+
+#### Run container inputs
+
+- `bind` - A space-separated list of volume bindings for this container. Default: *Mounts `/var/run/docker.sock`, CIEmu Action directory and workspace directory.*
+- `env` - A space-separated list of environment variables names to be exported for this container. Default: *not set*.
+- `user` - The user to be used within the running container. Default: *The current user and group that is executing the workflow. Note that the mapped user and group of the /etc/passwd file inside the container may not match the current user and group.*
+- `run` - The commands to be executed to run the container. Default: *not set*.
 
 ### Set up your workflow
 
