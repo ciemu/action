@@ -600,7 +600,7 @@ const docker_1 = __nccwpck_require__(4414);
     let workspace = process.env['GITHUB_WORKSPACE'] || process.cwd();
     let binds = bind ? shlex.split(bind) : _;
     let envs = env ? shlex.split(env).map(x => `${x}=${process.env[x] ?? ''}`) : _;
-    cachePrefix = (cachePrefix ?? `ciemu-cache-{image}`).replace(/[^-_a-z0-9]+/gi, '-');
+    cachePrefix = (cachePrefix ?? `ciemu-cache-${image}`).replace(/[^-_a-z0-9]+/gi, '-');
     let cacheDirectory = `${ciemuDirectory}/.ciemu/runtime/cache/${cachePrefix}`;
     fs.mkdir(cacheDirectory, { recursive: true });
     if (!build && !run) {
