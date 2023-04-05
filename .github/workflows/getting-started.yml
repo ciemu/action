@@ -29,7 +29,7 @@ jobs:
           - image: i386/ubuntu:bionic
           
     steps:
-      - name: Running CIEmu Action - Getting started
+      - name: Run CIEmu Action - Getting started
         uses: ciemu/action@v0
         env: 
           CIEMU_IMAGE: ${{ matrix.image }}
@@ -55,7 +55,8 @@ jobs:
             esac
 
             # Install chipsay
-            wget -O /usr/local/bin/chipsay https://raw.githubusercontent.com/ciemu/action/v0/chipsay
+
+            wget -O /usr/local/bin/chipsay https://raw.githubusercontent.com/ciemu/chipsay/main/chipsay
             chmod 755 /usr/local/bin/chipsay
           # Run container
           bind: |

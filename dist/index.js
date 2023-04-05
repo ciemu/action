@@ -41,7 +41,7 @@ async function main(docker, options) {
     const { image, build, run } = options;
     let imageToRun = image;
     // Register multi-arch emulation
-    await core.group('Enabling execution of multi-arch binaries (powered by QEMU)', async () => await registerEmulation(docker));
+    await core.group('Enabling execution of multi-arch binaries (powered by QEMU)', async () => await registerEmulation(docker, options));
     // Build user image
     if (build) {
         imageToRun = await core.group('Building image', async () => await buildImage(docker, options));
@@ -50,12 +50,22 @@ async function main(docker, options) {
     if (run) {
         await core.group('Running command', async () => await runCommand(docker, imageToRun, options));
     }
+    return {
+        image: imageToRun
+    };
 }
 exports["default"] = main;
 /**
  * Register multi-arch emulation binaries.
  */
-async function registerEmulation(docker) {
+async function registerEmulation(docker, { runtimeDirectory }) {
+    const lock = await fs.stat(`${runtimeDirectory}/ciemu.lock`)
+        .then(() => true)
+        .catch(() => false);
+    if (lock) {
+        core.info('Emulation binaries already registered.');
+        return;
+    }
     // Pull multiarch/qemu-user-static:latest
     core.info('Pulling multiarch/qemu-user-static:latest...');
     const pullResult = await docker.createImage({
@@ -78,6 +88,8 @@ async function registerEmulation(docker) {
             }
         }
     });
+    // Create lock file
+    await fs.writeFile(`${runtimeDirectory}/ciemu.lock`, '');
 }
 /**
  * Build a new image from from the given image and build script.
@@ -586,7 +598,8 @@ const docker_1 = __nccwpck_require__(4414);
         throw new Error('CIEmu Action only works on Linux.');
     }
     const _ = void 0;
-    let ciemuDirectory = __dirname.split('/').slice(0, -1).join('/');
+    const ciemuDirectory = __dirname.split('/').slice(0, -1).join('/');
+    const runtimeDirectory = `${ciemuDirectory}/.ciemu/runtime`;
     // Get inputs
     let image = core.getInput('image') || 'alpine';
     let shell = core.getInput('shell') || '/bin/sh';
@@ -601,16 +614,14 @@ const docker_1 = __nccwpck_require__(4414);
     let binds = bind ? shlex.split(bind) : _;
     let envs = env ? shlex.split(env).map(x => `${x}=${process.env[x] ?? ''}`) : _;
     cachePrefix = (cachePrefix ?? `ciemu-cache-${image}`).replace(/[^-_a-z0-9]+/gi, '-');
-    let cacheDirectory = `${ciemuDirectory}/.ciemu/runtime/cache/${cachePrefix}`;
+    let cacheDirectory = `${runtimeDirectory}/cache/${cachePrefix}`;
     fs.mkdir(cacheDirectory, { recursive: true });
-    if (!build && !run) {
-        core.warning("Both 'build' and 'run' are empty, nothing to do.");
-    }
     // Create docker client
     let docker = new docker_1.Docker();
     // Run CIEmu
     await (0, ciemu_1.default)(docker, {
         ciemuDirectory,
+        runtimeDirectory,
         cacheDirectory,
         workspace,
         image,

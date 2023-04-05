@@ -10,6 +10,7 @@ import { createTar } from './lib/tar';
 
 export type CIEmuOptions = {
     ciemuDirectory: string;
+    runtimeDirectory: string;
     cacheDirectory: string;
     cachePrefix: string;
     workspace: string;
@@ -31,7 +32,7 @@ export default async function main(docker: Docker, options: CIEmuOptions) {
     // Register multi-arch emulation
     await core.group(
         'Enabling execution of multi-arch binaries (powered by QEMU)',
-        async () => await registerEmulation(docker)
+        async () => await registerEmulation(docker, options)
     );
 
     // Build user image
@@ -49,12 +50,25 @@ export default async function main(docker: Docker, options: CIEmuOptions) {
             async () => await runCommand(docker, imageToRun, options)
         );
     }
+
+    return {
+        image: imageToRun
+    };
 }
 
 /**
  * Register multi-arch emulation binaries.
  */
-async function registerEmulation(docker: Docker) {
+async function registerEmulation(docker: Docker, { runtimeDirectory }: CIEmuOptions) {
+
+    const lock = await fs.stat(`${runtimeDirectory}/ciemu.lock`)
+        .then(() => true)
+        .catch(() => false);
+
+    if (lock) {
+        core.info('Emulation binaries already registered.');
+        return;
+    }
 
     // Pull multiarch/qemu-user-static:latest
     core.info('Pulling multiarch/qemu-user-static:latest...');
@@ -81,6 +95,8 @@ async function registerEmulation(docker: Docker) {
         }
     })
 
+    // Create lock file
+    await fs.writeFile(`${runtimeDirectory}/ciemu.lock`, '');
 }
 
 /**

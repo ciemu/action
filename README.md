@@ -65,7 +65,7 @@ jobs:
           - image: i386/ubuntu:bionic
           
     steps:
-      - name: Running CIEmu Action - Getting started
+      - name: Run CIEmu Action - Getting started
         uses: ciemu/action@v0
         env: 
           CIEMU_IMAGE: ${{ matrix.image }}
@@ -91,7 +91,8 @@ jobs:
             esac
 
             # Install chipsay
-            wget -O /usr/local/bin/chipsay https://raw.githubusercontent.com/ciemu/action/v0/chipsay
+
+            wget -O /usr/local/bin/chipsay https://raw.githubusercontent.com/ciemu/chipsay/main/chipsay
             chmod 755 /usr/local/bin/chipsay
           # Run container
           bind: |
@@ -105,9 +106,43 @@ jobs:
 
 This workflow will runs on every push and pull request to the repository. It will execute the CIEmu Action on a variety of Linux distributions and architectures, including `amd64`, `arm32v6`, `arm32v7`, `arm64v8`, `i386`, `ppc64le`, `riscv64` and `s390x`.
 
-The workflow will build the image for each container using the `build` input, and then run the container using the `run` input. The `build` commands will install the `chipsay` utility, which will be used to print a message with the container's architecture and distribution. Then, the `run` commands will execute the `chipsay` utility.
+The workflow will build the image for each container using the `build` input, and then run the container using the `run` input. The `build` commands will install the [`chipsay`](https://github.com/ciemu/chipsay) utility, which will be used to print a message with the container's architecture and distribution. Then, the `run` commands will execute the `chipsay` utility.
 
 The CIEmu Action includes a cache feature that can help speed up your builds by reusing previously built Docker images. The cache works by storing the Docker image in the GitHub Actions Cache.
+
+#### Register-emulators-only mode
+
+The CIEmu Action can also be used to register the emulators without building the image or running the container. This mode can be useful if you want to use the emulators in a subsequent step of your workflow. To use this mode, use the CIEmu Action without any inputs:
+
+```yaml
+name: Getting started with CIEmu Action - Register emulators only
+
+on: [ push, pull_request ]
+
+jobs:
+  register-emulators-only:
+    name: Running on ${{ matrix.image }}
+    runs-on: ubuntu-22.04
+
+    strategy:
+      matrix:
+        include:
+          - image: ghcr.io/ciemu/chipsay:amd64
+          - image: ghcr.io/ciemu/chipsay:arm32v6
+          - image: ghcr.io/ciemu/chipsay:arm32v7
+          - image: ghcr.io/ciemu/chipsay:arm64v8
+          - image: ghcr.io/ciemu/chipsay:ppc64le
+          - image: ghcr.io/ciemu/chipsay:riscv64
+          - image: ghcr.io/ciemu/chipsay:s390x
+
+    steps:
+      - name: Run CIEmu Action - Register emulators only
+        uses: ciemu/action@v0
+
+      - name: Run chipsay on ${{ matrix.image }}
+        shell: sh
+        run: docker run '${{ matrix.image }}'
+```
 
 # License
 

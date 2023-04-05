@@ -15,7 +15,8 @@ import { Docker } from './lib/docker';
 
     const _ = void 0;
 
-    let ciemuDirectory = __dirname.split('/').slice(0, -1).join('/');
+    const ciemuDirectory = __dirname.split('/').slice(0, -1).join('/');
+    const runtimeDirectory = `${ciemuDirectory}/.ciemu/runtime`;
 
     // Get inputs
 
@@ -36,12 +37,8 @@ import { Docker } from './lib/docker';
 
     cachePrefix = (cachePrefix ?? `ciemu-cache-${image}`).replace(/[^-_a-z0-9]+/gi, '-');
 
-    let cacheDirectory = `${ciemuDirectory}/.ciemu/runtime/cache/${cachePrefix}`;
+    let cacheDirectory = `${runtimeDirectory}/cache/${cachePrefix}`;
     fs.mkdir(cacheDirectory, { recursive: true });
-
-    if (!build && !run) {
-        core.warning("Both 'build' and 'run' are empty, nothing to do.");
-    }
 
     // Create docker client
 
@@ -51,6 +48,7 @@ import { Docker } from './lib/docker';
 
     await ciemu(docker, {
         ciemuDirectory,
+        runtimeDirectory,
         cacheDirectory,
         workspace,
         image,
