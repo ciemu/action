@@ -619,7 +619,7 @@ const docker_1 = __nccwpck_require__(4414);
     // Create docker client
     let docker = new docker_1.Docker();
     // Run CIEmu
-    await (0, ciemu_1.default)(docker, {
+    const result = await (0, ciemu_1.default)(docker, {
         ciemuDirectory,
         runtimeDirectory,
         cacheDirectory,
@@ -633,6 +633,8 @@ const docker_1 = __nccwpck_require__(4414);
         user,
         run,
     });
+    // Set outputs
+    core.setOutput('image', result.image);
 })()
     .catch(err => {
     core.setFailed(err);

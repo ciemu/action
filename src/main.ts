@@ -46,7 +46,7 @@ import { Docker } from './lib/docker';
 
     // Run CIEmu
 
-    await ciemu(docker, {
+    const result = await ciemu(docker, {
         ciemuDirectory,
         runtimeDirectory,
         cacheDirectory,
@@ -60,6 +60,10 @@ import { Docker } from './lib/docker';
         user,
         run,
     })
+
+    // Set outputs
+
+    core.setOutput('image', result.image);
 
 })()
     .catch(err => {

@@ -41,6 +41,10 @@ inputs:
     default: ""
     required: false
 
+outputs:
+  image:
+    description: The image name of the built container.
+
 runs:
   using: 'node16'
   main: 'dist/index.js'
