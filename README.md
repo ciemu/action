@@ -190,6 +190,7 @@ jobs:
 
       - name: Run chipsay sample container
         run: docker run "${{ steps.ciemu.outputs.image }}"
+```
 
 #### Run-only mode
 
@@ -232,7 +233,7 @@ jobs:
             CIEMU_IMAGE
           run: |
             chipsay
-``` 
+```
 
 This workflow will run `chipsay` utility on a variety of Linux distributions and architectures.
 
