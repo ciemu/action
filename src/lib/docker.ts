@@ -57,7 +57,7 @@ export class Docker {
 
     async build(options: BuildOptions) : Promise<IncomingMessage>;
     async build(options: BuildOptions, processProgress: true) : Promise<DockerImage>;
-    async build({ context, options }: BuildOptions, processProgress: boolean = true) : Promise<IncomingMessage | DockerImage> {
+    async build({ context, options, stdout }: BuildOptions, processProgress: boolean = true) : Promise<IncomingMessage | DockerImage> {
         const request = {
             path: '/build?',
             method: 'POST',
@@ -84,7 +84,11 @@ export class Docker {
                 error = event.error;
             else if (event.aux)
                 Object.assign(result, event.aux);
-            else if (options.q && 'string' == typeof event.stream && event.stream.startsWith('sha256:'))
+            else if (event.stream) {
+                if (stdout) {
+                    stdout.write(event.stream);
+                }
+            } else if (options.q && 'string' == typeof event.stream && event.stream.startsWith('sha256:'))
                 Object.assign(result, { ID: event.stream.trim() });
         });
 
@@ -314,7 +318,9 @@ export type AuthConfig = {
 
 export type BuildOptions = {
     context: Buffer,
+    stdout?: Writable,
     options: {
+        buildargs?: Record<string, string>,
         cachefrom?: string[],
         q?: boolean,
     }

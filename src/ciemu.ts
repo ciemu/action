@@ -115,19 +115,17 @@ async function buildImage(docker: Docker, options: CIEmuOptions) {
     const encoder = new TextEncoder();
     const dockerfile = [
         `FROM ${image}`,
-        'COPY ciemu-build.sh /ciemu-build.sh',
-        `RUN ${shell} /ciemu-build.sh`,
-        'RUN rm /ciemu-build.sh'
+        `ARG CIEMU_BUILD_SCRIPT=false`,
+        `RUN ${shell} -c "$CIEMU_BUILD_SCRIPT"`,
     ].join('\n')
 
     const context = createTar([
-        { name: 'Dockerfile', data: encoder.encode(dockerfile) },
-        { name: 'ciemu-build.sh', data: encoder.encode(buildCommand) }
+        { name: 'Dockerfile', data: encoder.encode(dockerfile) }
     ]);
 
     const contextHash = crypto
         .createHash('sha1')
-        .update("ciemu-cache-v0") // use to invalidate cache (e.g. when the cache format changes)
+        .update("ciemu-cache-1") // increment to invalidate cache (e.g. when the cache format changes)
         .update(cachePrefix)
         .update(dockerfile)
         .update(buildCommand)
@@ -159,7 +157,12 @@ async function buildImage(docker: Docker, options: CIEmuOptions) {
     const buildResult = await docker.build(
         {
             context: Buffer.from(context),
-            options: { q: true },
+            stdout: process.stdout,
+            options: {
+                buildargs: {
+                    CIEMU_BUILD_SCRIPT: buildCommand
+                }
+            },
         },
         true
     );

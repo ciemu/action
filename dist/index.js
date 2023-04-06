@@ -103,17 +103,15 @@ async function buildImage(docker, options) {
     const encoder = new TextEncoder();
     const dockerfile = [
         `FROM ${image}`,
-        'COPY ciemu-build.sh /ciemu-build.sh',
-        `RUN ${shell} /ciemu-build.sh`,
-        'RUN rm /ciemu-build.sh'
+        `ARG CIEMU_BUILD_SCRIPT=false`,
+        `RUN ${shell} -c "$CIEMU_BUILD_SCRIPT"`,
     ].join('\n');
     const context = (0, tar_1.createTar)([
-        { name: 'Dockerfile', data: encoder.encode(dockerfile) },
-        { name: 'ciemu-build.sh', data: encoder.encode(buildCommand) }
+        { name: 'Dockerfile', data: encoder.encode(dockerfile) }
     ]);
     const contextHash = crypto
         .createHash('sha1')
-        .update("ciemu-cache-v0") // use to invalidate cache (e.g. when the cache format changes)
+        .update("ciemu-cache-1") // increment to invalidate cache (e.g. when the cache format changes)
         .update(cachePrefix)
         .update(dockerfile)
         .update(buildCommand)
@@ -138,7 +136,12 @@ async function buildImage(docker, options) {
     core.info('Building image...');
     const buildResult = await docker.build({
         context: Buffer.from(context),
-        options: { q: true },
+        stdout: process.stdout,
+        options: {
+            buildargs: {
+                CIEMU_BUILD_SCRIPT: buildCommand
+            }
+        },
     }, true);
     // Export image to cache
     if (!cacheResult) {
@@ -236,7 +239,7 @@ class Docker {
         const result = await this.dial(request);
         return new DockerContainer(this, result.Id);
     }
-    async build({ context, options }, processProgress = true) {
+    async build({ context, options, stdout }, processProgress = true) {
         const request = {
             path: '/build?',
             method: 'POST',
@@ -259,6 +262,11 @@ class Docker {
                 error = event.error;
             else if (event.aux)
                 Object.assign(result, event.aux);
+            else if (event.stream) {
+                if (stdout) {
+                    stdout.write(event.stream);
+                }
+            }
             else if (options.q && 'string' == typeof event.stream && event.stream.startsWith('sha256:'))
                 Object.assign(result, { ID: event.stream.trim() });
         });
