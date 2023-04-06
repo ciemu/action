@@ -1,10 +1,9 @@
 {
-  "main": "lib/main.js",
+  "main": "src/main.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "ncc build --source-map --minify --license licenses.txt",
     "clean": "rimraf dist lib",
-    "package": "ncc build --license licenses.txt",
-    "all": "npm run clean && npm run build && npm run package"
+    "all": "npm run clean && npm run build"
   },
   "repository": {
     "type": "git",

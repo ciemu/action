@@ -68,4 +68,5 @@ import { Docker } from './lib/docker';
 })()
     .catch(err => {
         core.setFailed(err);
+        throw err;
     });
