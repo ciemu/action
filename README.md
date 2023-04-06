@@ -139,7 +139,7 @@ jobs:
           docker run ghcr.io/ciemu/chipsay:s390x
 ```
 
-In this example, the CIEmu Action will register the emulators to run the `chipsay` utility on many architectures. This is a simple example.
+In this example, the CIEmu Action will register the emulators to run the [`chipsay`](https://github.com/ciemu/chipsay) utility on many architectures. This is a simple example.
 
 Although you can use this mode to register the emulators to run any application on practically any architecture. The usage of containers is a great approach to run applications on different architectures, because they are lightweight and portable, and you can use it to isolate the application environment from the host environment.
 
@@ -235,7 +235,7 @@ jobs:
             chipsay
 ```
 
-This workflow will run `chipsay` utility on a variety of Linux distributions and architectures.
+This workflow will run [`chipsay`](https://github.com/ciemu/chipsay) utility on a variety of Linux distributions and architectures.
 
 # License
 
